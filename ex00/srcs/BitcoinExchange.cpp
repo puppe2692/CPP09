@@ -6,7 +6,7 @@
 /*   By: nwyseur <nwyseur@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/27 10:50:22 by nwyseur           #+#    #+#             */
-/*   Updated: 2023/09/27 16:29:21 by nwyseur          ###   ########.fr       */
+/*   Updated: 2023/09/27 17:51:45 by nwyseur          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,23 @@ BitcoinExchange::BitcoinExchange(char *inputFile)
 	std::cout << GREEN << " BitcoinExchange parameter constructor call" << RESET << std::endl;
 
 	this->_inputFile = std::string(inputFile);
-	csvDataFill();
-	iterInput(this->_inputFile);
+	try
+	{
+		csvDataFill();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	try
+	{
+		iterInput(this->_inputFile);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	
 
 }
 
@@ -74,7 +89,7 @@ bool isValidDate(const std::string& date)
 	ss >> tm.tm_mon;
 	ss.ignore();
 	ss >> tm.tm_mday;
-	return ss.eof() && !ss.fail() && tm.tm_year >= 0 && tm.tm_mon >= 1 && tm.tm_mon <= 12 && tm.tm_mday >= 1 && tm.tm_mday <= 31;
+	return ss.eof() && !ss.fail() && tm.tm_year >= 2009 && tm.tm_mon >= 1 && tm.tm_mon <= 12 && tm.tm_mday >= 1 && tm.tm_mday <= 31;
 }
 
 bool BitcoinExchange::isPars(std::string line)
@@ -83,7 +98,6 @@ bool BitcoinExchange::isPars(std::string line)
 		return (true);
 	
 	std::string dateStr;
-	std::string pipe;
 	std::string value;
 	float valuef;
 	
@@ -101,11 +115,46 @@ bool BitcoinExchange::isPars(std::string line)
 	{
 		throw invalidFormatException("Error: invalid value => " + line);
 	}
-	if (valuef <= 0)
+	if (valuef < 0)
 		throw invalidFormatException("Error: not a positive number.");
-	std::cout << "Date: " << dateStr << " Value: " << value << std::endl;
+	if (valuef > 1000)
+		throw invalidFormatException("Error: too large a number.");
+	results(dateStr, valuef);
 	return (true);
 	
+}
+
+std::string findClosestDate(const std::map<std::string, float>& _csvData, const std::string& targetDate) 
+{
+	std::map<std::string, float>::const_iterator it = _csvData.lower_bound(targetDate);
+
+	if (it == _csvData.begin()) {
+		return it->first;
+	}
+
+	if (it == _csvData.end()) {
+		return std::prev(it)->first;
+	}
+
+	const std::string& lowerDate = std::prev(it)->first;
+	return (lowerDate);
+}
+
+void BitcoinExchange::results(std::string& date, float amount)
+{
+	
+	std::map<std::string, float>::iterator it = _csvData.find(date);
+	std::string csvDate;
+	float value;
+
+	if (it == _csvData.end())
+		csvDate = findClosestDate(_csvData, date);
+	else
+		csvDate = date;
+
+	value = _csvData[csvDate] * amount;
+
+	std::cout << date << " => " << amount << " => " << value << std::endl;
 }
 
 void BitcoinExchange::iterInput(std::string input)
