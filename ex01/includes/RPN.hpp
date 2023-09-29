@@ -1,44 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   BitcoinExchange.hpp                                :+:      :+:    :+:   */
+/*   RPN.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nwyseur <nwyseur@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/09/27 10:17:04 by nwyseur           #+#    #+#             */
-/*   Updated: 2023/09/29 16:36:44 by nwyseur          ###   ########.fr       */
+/*   Created: 2023/09/29 12:04:29 by nwyseur           #+#    #+#             */
+/*   Updated: 2023/09/29 16:49:39 by nwyseur          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef BITCOINEXCHANGE_HPP
-# define BITCOINEXCHANGE_HPP
+#ifndef RPN_HPP
+# define RPN_HPP
 
 # include <iostream>
 # include <string>
-# include <map>
-# include <fstream>
-# include <sstream>
-# include <ctime>
-# include <algorithm>
+# include <stack>
 # include <exception>
 # include <cstdlib>
 
-# define RED "\e[0;31m"
-# define RESET "\e[0m"
-# define GREEN "\e[0;32m"
-# define YELLOW "\e[0;33m"
-
-class BitcoinExchange
+class RPN
 {
 	public:
-		BitcoinExchange(char *inputile);
-		~BitcoinExchange();
+		RPN(char* IPE);
+		~RPN() {}
 
-		void	csvDataFill(void);
-		void	iterInput(std::string input);
-		bool	isPars(std::string line);
-		void	results(std::string& date, float amount);
-
+		void parsing(void);
+		void calculation(void);
+		void operation(char c);
+		void plus(void);
+		void moins(void);
+		void diviser(void);
+		void fois(void);
+		
 		class invalidFormatException : public std::exception
 		{
 			public:
@@ -46,7 +40,7 @@ class BitcoinExchange
 				{
 					_message = msg;
 				}
-				virtual const char *what() const throw()
+				virtual const char* what() const throw()
 				{
 					return (_message.c_str());
 				}
@@ -57,11 +51,11 @@ class BitcoinExchange
 		};
 
 	private:
-		BitcoinExchange();
-		BitcoinExchange(BitcoinExchange& other);
-		BitcoinExchange& operator=(BitcoinExchange& other);
-		std::map<std::string, float> _csvData;
-		std::string _inputFile;
+		RPN();
+		RPN(RPN const& other);
+		RPN& operator=(RPN const& other);
+		std::string _IPE;
+		std::stack<int> _pile;
 
 };
 

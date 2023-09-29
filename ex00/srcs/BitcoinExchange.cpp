@@ -6,7 +6,7 @@
 /*   By: nwyseur <nwyseur@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/27 10:50:22 by nwyseur           #+#    #+#             */
-/*   Updated: 2023/09/27 17:51:45 by nwyseur          ###   ########.fr       */
+/*   Updated: 2023/09/29 16:47:37 by nwyseur          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void BitcoinExchange::csvDataFill(void)
 
 			if (isfloat(floatPart) == true)
 			{
-				float value = std::stof(floatPart);
+				double value = strtod(floatPart.c_str(),NULL);
 				this->_csvData[dateStr] = value;
 			}
 		}
@@ -99,7 +99,7 @@ bool BitcoinExchange::isPars(std::string line)
 	
 	std::string dateStr;
 	std::string value;
-	float valuef;
+	double valuef;
 	
 	if ( line.length() < 14 || line[10] != ' ' || line[12] != ' ' || line[11] != '|' || line[4] != '-' || line[7] != '-')
 		throw invalidFormatException( "Error: bad input => " + line);
@@ -109,7 +109,7 @@ bool BitcoinExchange::isPars(std::string line)
 		throw invalidFormatException( "Error: invalid date => " + line);
 	try
 	{
-		valuef = std::stof(value);
+		valuef = strtod(value.c_str(),NULL);
 	}
 	catch(const std::exception& e)
 	{
@@ -124,6 +124,13 @@ bool BitcoinExchange::isPars(std::string line)
 	
 }
 
+template <typename Iterator>
+Iterator my_prev(Iterator it)
+{
+	std::advance(it, -1);
+	return it;
+}
+
 std::string findClosestDate(const std::map<std::string, float>& _csvData, const std::string& targetDate) 
 {
 	std::map<std::string, float>::const_iterator it = _csvData.lower_bound(targetDate);
@@ -133,10 +140,10 @@ std::string findClosestDate(const std::map<std::string, float>& _csvData, const 
 	}
 
 	if (it == _csvData.end()) {
-		return std::prev(it)->first;
+		return my_prev(it)->first;
 	}
 
-	const std::string& lowerDate = std::prev(it)->first;
+	const std::string& lowerDate = my_prev(it)->first;
 	return (lowerDate);
 }
 
@@ -162,7 +169,7 @@ void BitcoinExchange::iterInput(std::string input)
 	std::ifstream	infile;
 	std::string		line;
 
-	infile.open(input);
+	infile.open(input.c_str());
 	if (!infile.is_open())
 		throw std::exception();
 	else

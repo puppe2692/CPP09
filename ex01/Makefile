@@ -6,17 +6,17 @@
 #    By: nwyseur <nwyseur@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/11/28 21:18:35 by nwyseur           #+#    #+#              #
-#    Updated: 2023/09/29 16:14:49 by nwyseur          ###   ########.fr        #
+#    Updated: 2023/09/29 15:48:45 by nwyseur          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME		:= btc
+NAME		:= RPN
 
 SRCS_FILES	:= main.cpp \
-				BitcoinExchange.cpp \
+				RPN.cpp \
 
-HEADER_FILE	:= BitcoinExchange.hpp \
-				
+HEADER_FILE	:= RPN.hpp \
+
 SRCS_DIR	:= ./srcs/
 INC_DIR		:= ./includes/
 
