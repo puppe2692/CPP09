@@ -6,7 +6,7 @@
 /*   By: nwyseur <nwyseur@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/03 10:41:39 by nwyseur           #+#    #+#             */
-/*   Updated: 2023/10/04 18:10:10 by nwyseur          ###   ########.fr       */
+/*   Updated: 2023/10/05 12:21:28 by nwyseur          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,15 @@ PmergeMe::PmergeMe(char** str)
 	try
 	{
 		parsing(str);
+		sequencing(str);
+		mergevect();
+		mergelist();
+		printAll();
 	}
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
 	}
-	sequencing(str);
-	//printvect(0);
-	//mergevect();
-	std::cout << "///////////////" << std::endl;
-	printlist(0);
-	mergelist();
 
 }
 
@@ -54,6 +52,15 @@ void	PmergeMe::parsing(char** str)
 	}
 }
 
+void	PmergeMe::printAll(void)
+{
+	printvect(0);
+	printvect(1);
+	std::cout << "Time to process a range of " << _vectS.size() << " elements with std::vector : " << _timeVect << "ms" << std::endl;
+	std::cout << "Time to process a range of " << _listS.size() << " elements with std::list : " << _timeList << "ms" << std::endl;
+
+}
+
 void	PmergeMe::sequencing(char** str)
 {
 	for (int i = 1; str[i]; i++)
@@ -66,32 +73,37 @@ void	PmergeMe::sequencing(char** str)
 void PmergeMe::printvect(int i)
 {
 	if (i == 0)
-		std::cout << "Before V:";
-	if (i == 1)
-		std::cout << "After V:";
-	for(unsigned long j = 0; j < _vectS.size(); j++)
-		std::cout << ' ' << this->_vectS[j];
-	std::cout << '\n';
-}
-
-void PmergeMe::printlist(int i) // effacer
-{
-	std::list<int>::iterator	it = _listS.begin();
-	std::list<int>::iterator	ite = _listS.end();
-	if (i == 0)
-		std::cout << "Before L:";
-	if (i == 1)
-		std::cout << "After L:";
-	while (it != ite)
 	{
-		std::cout << ' ' << *it;
-		it++;
+		std::cout << "Before: ";
+		for(unsigned long j = 0; j < _vectS.size(); j++)
+		{
+			std::cout << ' ' << this->_vectS[j];
+			if (j > 10)
+			{
+				std::cout << " [...] ";
+				break;
+			}
+		}
+	}
+	if (i == 1)
+	{
+		std::cout << "After: ";
+		for(unsigned long j = 0; j < _vectSort.size(); j++)
+		{
+			std::cout << ' ' << this->_vectSort[j];
+			if (j > 10)
+			{
+				std::cout << " [...] ";
+				break;
+			}
+		}
 	}
 	std::cout << '\n';
 }
 
 void PmergeMe::mergevect(void)
 {
+	clock_t start = clock();
 	int len = _vectS.size();
 	int *tmp = NULL;
 	for (int i = 0; i < len - 1; i += 2)
@@ -106,20 +118,9 @@ void PmergeMe::mergevect(void)
 		tmp = &_vectS[len - 1];
 	}
 	sortvectP();
-	for (unsigned long j = 0; j < _vectP.size(); j++)
-	{
-		std::cout << "Vect: " << j << " - first: " << _vectP[j].first << std::endl;
-		std::cout << "Vect: " <<  j << " - second: " << _vectP[j].second << std::endl;
-		std::cout << '\n';
-	}
-	if (len % 2 == 1)
-	{
-		std::cout << "Vect - on top: " << *tmp << std::endl;
-	}
 	insertvect(tmp);
-	for(unsigned long j = 0; j < _vectS.size(); j++)
-		std::cout << ' ' << this->_vectS[j];
-	std::cout << '\n';
+	clock_t end = clock();
+	_timeVect = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.00;
 }
 
 void PmergeMe::sortvectP(void)
@@ -150,22 +151,21 @@ void PmergeMe::insertvect(int* tmp)
 		valtmp = *tmp;
 	}
 
-	_vectS.clear();	
 	for (std::vector<std::pair<int, int> >::iterator it = _vectP.begin(); it < _vectP.end(); it++)
 	{
-			_vectS.push_back((*it).first);
+			_vectSort.push_back((*it).first);
 	}
 
 	for (std::vector<std::pair<int, int> >::iterator it = _vectP.begin(); it < _vectP.end(); it++)
 	{
-		std::vector<int>::iterator sortit = std::lower_bound(_vectS.begin(), _vectS.end(), (*it).second);
-		_vectS.insert(sortit, (*it).second);
+		std::vector<int>::iterator sortit = std::lower_bound(_vectSort.begin(), _vectSort.end(), (*it).second);
+		_vectSort.insert(sortit, (*it).second);
 	}
 
 	if (tmp != NULL)
 	{
-		std::vector<int>::iterator ittmp = std::lower_bound(_vectS.begin(), _vectS.end(), valtmp);
-		_vectS.insert(ittmp, valtmp);
+		std::vector<int>::iterator ittmp = std::lower_bound(_vectSort.begin(), _vectSort.end(), valtmp);
+		_vectSort.insert(ittmp, valtmp);
 	}
 }
 
@@ -173,25 +173,41 @@ void PmergeMe::insertvect(int* tmp)
 
 void PmergeMe::mergelist(void)
 {
+	clock_t start = clock();
 	int len = _listS.size();
 	int *tmp = NULL;
 
-
-	for(std::list<int>::iterator it = _listS.begin(); it != getPrev(_listS.end()); getdbnext(it)) // ici ca va pas
+	if (len % 2 == 1)
 	{
-		if ((*it) >= (*getNext(it)))
-			_listP.push_back(std::make_pair((*it), (*getNext(it))));
-		else
-			_listP.push_back(std::make_pair((*getNext(it)), (*it)));
+		for(std::list<int>::iterator it = _listS.begin(); it != getPrev(_listS.end()); it++)
+		{
+			if ((*it) >= (*getNext(it)))
+			{
+				_listP.push_back(std::make_pair((*it), (*getNext(it))));
+				++it;
+			}
+			else
+			{
+				_listP.push_back(std::make_pair((*getNext(it)), (*it)));
+				++it;
+			}
+		}
 	}
-
-	for (unsigned long j = 0; j < _listP.size(); j++)
+	else
 	{
-		std::list<std::pair<int,int> >::iterator it = _listP.begin();
-		std::advance(it, j);
-		std::cout << "List: " << j << " - first: " << (*it).first << std::endl;
-		std::cout << "List: " << j << " - second: " << (*it).second << std::endl;
-		std::cout << '\n';
+		for(std::list<int>::iterator it = _listS.begin(); it != _listS.end(); it++)
+		{
+			if ((*it) >= (*getNext(it)))
+			{
+				_listP.push_back(std::make_pair((*it), (*getNext(it))));
+				++it;
+			}
+			else
+			{
+				_listP.push_back(std::make_pair((*getNext(it)), (*it)));
+				++it;
+			}
+		}
 	}
 	
 	if (len % 2 == 1)
@@ -199,27 +215,11 @@ void PmergeMe::mergelist(void)
 		std::list<int>::iterator it = getPrev(_listS.end());
 		tmp = &(*it);
 	}
+
 	sortlistP();
-	for (unsigned long j = 0; j < _listP.size(); j++)
-	{
-		std::list<std::pair<int,int> >::iterator it = _listP.begin();
-		std::advance(it, j);
-		std::cout << "Sort List: " << j << " - first: " << (*it).first << std::endl;
-		std::cout << "Sort List: " << j << " - second: " << (*it).second << std::endl;
-		std::cout << '\n';
-	}
-	if (len % 2 == 1)
-	{
-		std::cout << "List - on top: " << *tmp << std::endl;
-	}
 	insertlist(tmp);
-	for(unsigned long j = 0; j < _listS.size(); j++)
-	{
-		std::list<int>::iterator it = _listS.begin();
-		std::advance(it, j);
-		std::cout << ' ' << (*it);
-	}
-	std::cout << '\n';
+	clock_t end = clock();
+	_timeList = ((double)(end - start) / CLOCKS_PER_SEC) * 1000.00;
 }
 
 void PmergeMe::sortlistP(void)
@@ -250,22 +250,21 @@ void PmergeMe::insertlist(int* tmp)
 		valtmp = *tmp;
 	}
 
-	_listS.clear();	
 	for (std::list<std::pair<int, int> >::iterator it = _listP.begin(); it != _listP.end(); it++)
 	{
-			_listS.push_back((*it).first);
+			_listSort.push_back((*it).first);
 	}
 
 	for (std::list<std::pair<int, int> >::iterator it = _listP.begin(); it != _listP.end(); it++)
 	{
-		std::list<int>::iterator sortit = std::lower_bound(_listS.begin(), _listS.end(), (*it).second);
-		_listS.insert(sortit, (*it).second);
+		std::list<int>::iterator sortit = std::lower_bound(_listSort.begin(), _listSort.end(), (*it).second);
+		_listSort.insert(sortit, (*it).second);
 	}
 
 	if (tmp != NULL)
 	{
-		std::list<int>::iterator ittmp = std::lower_bound(_listS.begin(), _listS.end(), valtmp);
-		_listS.insert(ittmp, valtmp);
+		std::list<int>::iterator ittmp = std::lower_bound(_listSort.begin(), _listSort.end(), valtmp);
+		_listSort.insert(ittmp, valtmp);
 	}
 }
 
@@ -287,12 +286,3 @@ T PmergeMe::getNext(T it)
     return tmp;
 }
 
-template<typename T>
-T PmergeMe::getdbnext(T it) 
-{
-	T tmp = it;
-
-    ++tmp;
-	++tmp;
-    return tmp;
-}
